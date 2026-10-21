@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="foodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  <rect width="400" height="300" fill="url(#foodGrad)"/>
+  <circle cx="200" cy="130" r="75" fill="#ffffff" opacity="0.95" filter="url(#shadow)"/>
+  <circle cx="200" cy="130" r="62" fill="none" stroke="#d97706" stroke-width="3" stroke-dasharray="6,4"/>
+  <!-- Cloche / Plate icon -->
+  <path d="M 160 145 C 160 110 240 110 240 145 Z" fill="#b45309"/>
+  <circle cx="200" cy="106" r="6" fill="#b45309"/>
+  <rect x="150" y="148" width="100" height="6" rx="3" fill="#92400e"/>
+  <text x="200" y="240" font-family="'Outfit', sans-serif, system-ui" font-weight="700" font-size="20" fill="#ffffff" text-anchor="middle" letter-spacing="1">CAMPUSBITE SPECIAL</text>
+  <text x="200" y="262" font-family="'Inter', sans-serif, system-ui" font-size="12" fill="#fef3c7" text-anchor="middle">Freshly Prepared at Counter</text>
+</svg>
