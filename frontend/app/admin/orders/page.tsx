@@ -11,18 +11,13 @@ export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
+  const [methodFilter, setMethodFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
   const [search, setSearch] = useState('');
-
-  // Status Override Modal state
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [newStatus, setNewStatus] = useState('');
-  const [newPaymentStatus, setNewPaymentStatus] = useState('');
-  const [overrideNotes, setOverrideNotes] = useState('');
-  const [overrideLoading, setOverrideLoading] = useState(false);
 
   useEffect(() => {
     fetchOrders();
-  }, [page, statusFilter, paymentFilter]);
+  }, [page, statusFilter, paymentFilter, methodFilter, dateFilter]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -50,291 +45,334 @@ export default function AdminOrdersPage() {
     fetchOrders();
   };
 
-  const openOverrideModal = (ord: Order) => {
-    setSelectedOrder(ord);
-    setNewStatus(ord.order_status);
-    setNewPaymentStatus(ord.payment_status);
-    setOverrideNotes('');
-  };
-
-  const handleOverrideSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedOrder) return;
-    setOverrideLoading(true);
-    try {
-      const res = await api.overrideOrderStatus(selectedOrder.id, {
-        new_status: newStatus,
-        payment_status: newPaymentStatus,
-        notes: overrideNotes.trim() || undefined,
-      });
-      if (res.success) {
-        alert(res.message);
-        setSelectedOrder(null);
-        await fetchOrders();
-      }
-    } catch (err: any) {
-      alert(err.message || 'Status override failed.');
-    } finally {
-      setOverrideLoading(false);
-    }
+  const handleResetFilters = () => {
+    setSearch('');
+    setStatusFilter('all');
+    setPaymentFilter('all');
+    setMethodFilter('all');
+    setDateFilter('all');
+    setPage(1);
   };
 
   return (
-    <div className="admin-orders-page">
-      <div className="admin-page-header">
+    <div>
+      {/* Page Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+          flexWrap: 'wrap',
+          gap: '14px',
+        }}
+      >
         <div>
-          <h1 className="admin-heading">
-            <i className="fa-solid fa-receipt"></i> Orders Management
+          <h1
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.65rem',
+              fontWeight: 800,
+              margin: 0,
+              color: 'var(--color-text)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <i className="fa-solid fa-receipt" style={{ color: 'var(--color-accent)' }}></i> Order Management
           </h1>
-          <p className="admin-subheading">Monitor live campus tokens, filter receipts, and override stages</p>
+          <p style={{ margin: '4px 0 0', color: 'var(--color-text-secondary)', fontSize: '0.88rem' }}>
+            Filter, inspect, track, and update all campus canteen orders.
+          </p>
         </div>
+
+        <Link
+          href="/staff"
+          target="_blank"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '9px 18px',
+            borderRadius: '8px',
+            border: '1.5px solid #2C2C2C',
+            background: 'white',
+            color: '#2C2C2C',
+            fontWeight: 600,
+            fontSize: '0.88rem',
+            textDecoration: 'none',
+          }}
+        >
+          <i className="fa-solid fa-kitchen-set"></i> Open Kitchen Live Screen <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: '0.75rem' }}></i>
+        </Link>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="admin-toolbar-card mt-3">
-        <form onSubmit={handleSearchSubmit} className="toolbar-search-form">
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search token # or customer name..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <button type="submit" className="btn btn-secondary">
-              <i className="fa-solid fa-magnifying-glass"></i>
+      {/* Filters Card */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '10px',
+          border: '1px solid #e2e8f0',
+          padding: '16px 20px',
+          marginBottom: '20px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        }}
+      >
+        <form
+          onSubmit={handleSearchSubmit}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(200px, 1.4fr) repeat(4, minmax(130px, 1fr)) auto',
+            gap: '10px',
+            alignItems: 'center',
+          }}
+        >
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search Order # or customer..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          />
+
+          <select
+            className="form-control"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          >
+            <option value="all">All Order Statuses</option>
+            <option value="placed">Placed (New)</option>
+            <option value="accepted">Accepted</option>
+            <option value="preparing">Preparing</option>
+            <option value="ready">Ready for Pickup</option>
+            <option value="collected">Collected</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+
+          <select
+            className="form-control"
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          >
+            <option value="all">All Payment Statuses</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+          </select>
+
+          <select
+            className="form-control"
+            value={methodFilter}
+            onChange={(e) => setMethodFilter(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          >
+            <option value="all">All Methods</option>
+            <option value="cash">Cash at Counter</option>
+            <option value="upi">UPI Payment</option>
+          </select>
+
+          <select
+            className="form-control"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          >
+            <option value="all">All Dates</option>
+            <option value="today">Today</option>
+            <option value="7days">Last 7 Days</option>
+            <option value="30days">Last 30 Days</option>
+          </select>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="submit"
+              style={{
+                background: '#1B4332',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '9px 18px',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <i className="fa-solid fa-filter"></i> Apply
+            </button>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              title="Reset Filters"
+              style={{
+                background: 'white',
+                color: '#64748b',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                padding: '9px 12px',
+                cursor: 'pointer',
+              }}
+            >
+              <i className="fa-solid fa-rotate-left"></i>
             </button>
           </div>
         </form>
-
-        <div className="toolbar-filters-row">
-          <div className="filter-item">
-            <label>Order Status:</label>
-            <select
-              className="form-control form-control-sm"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="all">All Statuses</option>
-              <option value="placed">Placed</option>
-              <option value="accepted">Accepted</option>
-              <option value="preparing">Preparing</option>
-              <option value="ready">Ready for Collection</option>
-              <option value="collected">Collected</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          <div className="filter-item">
-            <label>Payment Status:</label>
-            <select
-              className="form-control form-control-sm"
-              value={paymentFilter}
-              onChange={(e) => {
-                setPaymentFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="all">All Payments</option>
-              <option value="pending">Pending</option>
-              <option value="paid">Paid</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* Orders Table */}
-      <div className="admin-table-card mt-4">
-        {loading ? (
-          <div className="text-center py-5">
-            <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-            <p className="mt-3">Loading orders...</p>
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '10px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '14px 20px',
+            borderBottom: '1px solid #f1f5f9',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.85rem',
+            color: '#64748b',
+          }}
+        >
+          <div>
+            <strong style={{ color: '#1e293b' }}>{totalCount}</strong> orders found
           </div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-5 text-muted">
-            <i className="fa-solid fa-box-open fa-2x"></i>
-            <p className="mt-2">No orders found matching the filter criteria.</p>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="admin-data-table">
-              <thead>
-                <tr>
-                  <th>Token</th>
-                  <th>Customer</th>
-                  <th>Items Snapshot</th>
-                  <th>Total</th>
-                  <th>Payment</th>
-                  <th>Order Stage</th>
-                  <th>Date & Time</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((ord) => (
-                  <tr key={ord.id}>
-                    <td>
-                      <span className="order-token-badge font-weight-bold">
-                        #{ord.order_number}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{ord.customer_name_snapshot}</strong>
-                      {ord.customer_phone_snapshot && (
-                        <div className="text-muted small">{ord.customer_phone_snapshot}</div>
-                      )}
-                    </td>
-                    <td>
-                      {ord.items?.map((i) => (
-                        <div key={i.id} className="small">
-                          {i.quantity}× {i.item_name_snapshot}
-                        </div>
-                      ))}
-                    </td>
-                    <td className="font-weight-bold">₹{Number(ord.total_amount).toFixed(2)}</td>
-                    <td>
-                      <span className={`badge-pill badge-${ord.payment_status}`}>
-                        {ord.payment_status.toUpperCase()} ({ord.payment_method.toUpperCase()})
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`badge-pill badge-${ord.order_status}`}>
-                        {ord.order_status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="text-muted small">
-                      {new Date(ord.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
-                    </td>
-                    <td>
-                      <div className="btn-group">
-                        <Link
-                          href={`/order-details/${ord.id}`}
-                          className="btn btn-outline-secondary btn-xs mr-1"
-                          title="View customer tracker"
-                        >
-                          <i className="fa-solid fa-eye"></i>
-                        </Link>
-                        <button
-                          className="btn btn-outline-primary btn-xs"
-                          onClick={() => openOverrideModal(ord)}
-                          title="Admin Status Override"
-                        >
-                          <i className="fa-solid fa-sliders"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+          <div>Page {page} of {Math.max(1, Math.ceil(totalCount / 15))}</div>
+        </div>
 
-        {/* Pagination */}
-        <div className="table-pagination-footer">
-          <span className="total-records-text">Total Orders: {totalCount}</span>
-          <div className="pagination-controls">
-            <button
-              className="btn btn-outline-secondary btn-sm"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </button>
-            <span className="current-page-badge">Page {page}</span>
-            <button
-              className="btn btn-outline-secondary btn-sm"
-              disabled={orders.length < 15}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </button>
-          </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <th style={{ padding: '12px 18px', fontWeight: 700 }}>Order #</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700 }}>Customer</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700 }}>Date & Time</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Items</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'right' }}>Amount</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Payment</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Order Status</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '50px', color: '#64748b' }}>
+                    <i className="fa-solid fa-spinner fa-spin fa-2x" style={{ color: 'var(--color-accent)' }}></i>
+                    <p className="mt-2" style={{ margin: '8px 0 0' }}>Loading orders...</p>
+                  </td>
+                </tr>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '50px', color: '#94a3b8' }}>
+                    <i className="fa-solid fa-receipt fa-2x" style={{ color: '#cbd5e1', marginBottom: '8px', display: 'block' }}></i>
+                    No orders found matching your criteria.
+                  </td>
+                </tr>
+              ) : (
+                orders.map((ord) => {
+                  const itemsCount = ord.items?.length || 1;
+                  const isPaid = ord.payment_status === 'paid';
+                  return (
+                    <tr key={ord.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px 18px', fontWeight: 700 }}>
+                        <Link href={`/admin/orders/${ord.id}`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>
+                          #{ord.order_number}
+                        </Link>
+                      </td>
+                      <td style={{ padding: '12px 18px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{ord.customer_name_snapshot}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          {ord.customer_phone_snapshot || 'rahul@college.edu'}
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 18px', fontSize: '0.85rem', color: '#64748b' }}>
+                        <div>{new Date(ord.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          {new Date(ord.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 18px', textAlign: 'center', fontWeight: 600, fontSize: '0.88rem', color: '#475569' }}>
+                        {itemsCount} item{itemsCount > 1 ? 's' : ''}
+                      </td>
+                      <td style={{ padding: '12px 18px', textAlign: 'right', fontWeight: 700, color: '#1e293b' }}>
+                        ₹{Number(ord.total_amount).toFixed(2)}
+                      </td>
+                      <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                          <span
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '2px 8px',
+                              borderRadius: 'var(--radius-full)',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              background: isPaid ? '#dcfce7' : '#fef3c7',
+                              color: isPaid ? '#15803d' : '#a16207',
+                            }}
+                          >
+                            {isPaid ? 'PAID' : 'PENDING'}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
+                            {ord.payment_method}
+                          </span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '3px 10px',
+                            borderRadius: 'var(--radius-full)',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            background: ord.order_status === 'collected' ? '#e2e8f0' : ord.order_status === 'ready' ? '#dcfce7' : '#e0f2fe',
+                            color: ord.order_status === 'collected' ? '#475569' : ord.order_status === 'ready' ? '#15803d' : '#0369a1',
+                          }}
+                        >
+                          {ord.order_status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                        <Link
+                          href={`/admin/orders/${ord.id}`}
+                          style={{
+                            padding: '4px 12px',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            borderRadius: '6px',
+                            border: '1px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: '#334155',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <i className="fa-solid fa-sliders" style={{ fontSize: '0.75rem' }}></i> Manage
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      {/* Override Status Modal */}
-      {selectedOrder && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3>Admin Status Override</h3>
-              <button className="close-btn" onClick={() => setSelectedOrder(null)}>
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-            <p className="modal-desc">
-              Overriding token <strong>#{selectedOrder.order_number}</strong> for {selectedOrder.customer_name_snapshot}.
-            </p>
-
-            <form onSubmit={handleOverrideSubmit} className="mt-3">
-              <div className="form-group mb-3">
-                <label className="form-label">Order Lifecycle Status</label>
-                <select
-                  className="form-control"
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                >
-                  <option value="placed">PLACED</option>
-                  <option value="accepted">ACCEPTED</option>
-                  <option value="preparing">PREPARING</option>
-                  <option value="ready">READY FOR COLLECTION</option>
-                  <option value="collected">COLLECTED</option>
-                  <option value="cancelled">CANCELLED</option>
-                </select>
-              </div>
-
-              <div className="form-group mb-3">
-                <label className="form-label">Payment Status</label>
-                <select
-                  className="form-control"
-                  value={newPaymentStatus}
-                  onChange={(e) => setNewPaymentStatus(e.target.value)}
-                >
-                  <option value="pending">PENDING</option>
-                  <option value="paid">PAID</option>
-                  <option value="failed">FAILED</option>
-                  <option value="refunded">REFUNDED</option>
-                </select>
-              </div>
-
-              <div className="form-group mb-3">
-                <label className="form-label">Admin Reason / Audit Note</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="e.g. Counter handover confirmed manually"
-                  value={overrideNotes}
-                  onChange={(e) => setOverrideNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="modal-actions mt-4">
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary"
-                  onClick={() => setSelectedOrder(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-accent"
-                  disabled={overrideLoading}
-                >
-                  {overrideLoading ? 'Saving...' : 'Apply Status Override'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-

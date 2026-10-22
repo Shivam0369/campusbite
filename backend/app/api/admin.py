@@ -29,6 +29,50 @@ from app.schemas import (
 
 router = APIRouter(prefix="/admin", tags=["Administrator Control Panel"])
 
+def format_order_dict(o: Order) -> dict:
+    loaded_items = o.__dict__.get("items", []) or []
+    loaded_history = o.__dict__.get("status_history", []) or []
+    return {
+        "id": o.id,
+        "order_number": o.order_number,
+        "user_id": o.user_id,
+        "customer_name_snapshot": o.customer_name_snapshot,
+        "customer_phone_snapshot": o.customer_phone_snapshot,
+        "subtotal": float(o.subtotal),
+        "discount_amount": float(o.discount_amount),
+        "tax_amount": float(o.tax_amount),
+        "total_amount": float(o.total_amount),
+        "payment_method": o.payment_method,
+        "payment_status": o.payment_status,
+        "order_status": o.order_status,
+        "notes": o.notes,
+        "created_at": o.created_at.isoformat(),
+        "updated_at": o.updated_at.isoformat(),
+        "collected_at": o.collected_at.isoformat() if o.collected_at else None,
+        "items": [
+            {
+                "id": i.id,
+                "menu_item_id": i.menu_item_id,
+                "item_name_snapshot": i.item_name_snapshot,
+                "unit_price": float(i.unit_price),
+                "quantity": i.quantity,
+                "line_total": float(i.line_total),
+            }
+            for i in loaded_items
+        ],
+        "status_history": [
+            {
+                "id": h.id,
+                "old_status": h.old_status,
+                "new_status": h.new_status,
+                "changed_by_name": "Staff/Admin" if h.changed_by else "System",
+                "notes": h.notes,
+                "created_at": h.created_at.isoformat(),
+            }
+            for h in loaded_history
+        ]
+    }
+
 @router.get("/dashboard", response_model=ResponseModel)
 async def get_dashboard(
     current_user: User = Depends(require_admin),
@@ -97,11 +141,7 @@ async def get_dashboard(
         .limit(10)
     )
     recent_res = await db.execute(recent_stmt)
-    recent_orders_list = []
-    for o in recent_res.scalars().all():
-        od = OrderDetailResponse.model_validate(o).model_dump()
-        od["items"] = [OrderItemResponse.model_validate(i).model_dump() for i in o.items]
-        recent_orders_list.append(od)
+    recent_orders_list = [format_order_dict(o) for o in recent_res.scalars().all()]
 
     # 7-day revenue trend
     revenue_chart = []
@@ -187,11 +227,7 @@ async def get_admin_orders(
     stmt = stmt.offset((page - 1) * limit).limit(limit)
     orders = (await db.execute(stmt)).scalars().all()
 
-    orders_list = []
-    for o in orders:
-        od = OrderDetailResponse.model_validate(o).model_dump()
-        od["items"] = [OrderItemResponse.model_validate(i).model_dump() for i in o.items]
-        orders_list.append(od)
+    orders_list = [format_order_dict(o) for o in orders]
 
     return ResponseModel(
         success=True,
@@ -552,7 +588,7 @@ async def get_admin_reports(
                 "end_date": end_dt.isoformat(),
             },
             "orders": [
-                OrderDetailResponse.model_validate(o).model_dump() for o in orders
+                format_order_dict(o) for o in orders
             ]
         }
     )

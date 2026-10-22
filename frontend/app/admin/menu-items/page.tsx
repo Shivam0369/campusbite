@@ -8,6 +8,11 @@ export default function AdminMenuItemsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Filters
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -15,13 +20,13 @@ export default function AdminMenuItemsPage() {
     name: '',
     category_id: 1,
     price: '',
-    food_type: 'veg',
+    food_type: 'non-veg',
     description: '',
     preparation_time_minutes: 15,
     is_available: 1,
+    is_active: 1,
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -58,18 +63,6 @@ export default function AdminMenuItemsPage() {
     }
   };
 
-  const handleDelete = async (itemId: number, name: string) => {
-    if (!confirm(`Are you sure you want to remove '${name}' from the menu?`)) return;
-    try {
-      const res = await api.deleteMenuItem(itemId);
-      if (res.success) {
-        setItems((prev) => prev.filter((i) => i.id !== itemId));
-      }
-    } catch (err: any) {
-      alert(err.message || 'Failed to delete item.');
-    }
-  };
-
   const openCreateModal = () => {
     setEditingItem(null);
     setFormData({
@@ -80,8 +73,8 @@ export default function AdminMenuItemsPage() {
       description: '',
       preparation_time_minutes: 15,
       is_available: 1,
+      is_active: 1,
     });
-    setError(null);
     setShowModal(true);
   };
 
@@ -95,274 +88,581 @@ export default function AdminMenuItemsPage() {
       description: item.description || '',
       preparation_time_minutes: item.preparation_time_minutes,
       is_available: item.is_available,
+      is_active: item.is_active ?? 1,
     });
-    setError(null);
     setShowModal(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSaveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
-    const priceNum = parseFloat(formData.price);
-    if (isNaN(priceNum) || priceNum <= 0) {
-      setError('Price must be greater than zero.');
-      return;
-    }
-
     setSaving(true);
     try {
+      const payload: any = {
+        name: formData.name.trim(),
+        category_id: Number(formData.category_id),
+        price: parseFloat(formData.price),
+        food_type: formData.food_type,
+        description: formData.description.trim() || undefined,
+        preparation_time_minutes: Number(formData.preparation_time_minutes),
+        is_available: formData.is_available,
+        is_active: formData.is_active,
+      };
+
       if (editingItem) {
-        const res = await api.updateMenuItem(editingItem.id, {
-          name: formData.name.trim(),
-          category_id: Number(formData.category_id),
-          price: priceNum,
-          food_type: formData.food_type,
-          description: formData.description.trim() || undefined,
-          preparation_time_minutes: Number(formData.preparation_time_minutes),
-          is_available: formData.is_available,
-        });
-        if (res.success) {
-          setShowModal(false);
-          await fetchData();
-        }
+        await api.updateMenuItem(editingItem.id, payload);
       } else {
-        const res = await api.createMenuItem({
-          name: formData.name.trim(),
-          category_id: Number(formData.category_id),
-          price: priceNum,
-          food_type: formData.food_type,
-          description: formData.description.trim() || undefined,
-          preparation_time_minutes: Number(formData.preparation_time_minutes),
-          is_available: formData.is_available,
-        });
-        if (res.success) {
-          setShowModal(false);
-          await fetchData();
-        }
+        await api.createMenuItem(payload);
       }
+      setShowModal(false);
+      await fetchData();
     } catch (err: any) {
-      setError(err.message || 'Saving failed.');
+      alert(err.message || 'Operation failed.');
     } finally {
       setSaving(false);
     }
   };
 
+  const filteredItems = items.filter((item) => {
+    if (search.trim() && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (categoryFilter !== 'all' && String(item.category_id) !== categoryFilter) return false;
+    if (typeFilter !== 'all' && item.food_type !== typeFilter) return false;
+    return true;
+  });
+
   return (
-    <div className="admin-menu-page">
-      <div className="admin-page-header">
+    <div>
+      {/* Page Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+          flexWrap: 'wrap',
+          gap: '14px',
+        }}
+      >
         <div>
-          <h1 className="admin-heading">
-            <i className="fa-solid fa-bowl-food"></i> Food Menu Items
+          <h1
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.65rem',
+              fontWeight: 800,
+              margin: 0,
+              color: 'var(--color-text)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <i className="fa-solid fa-bowl-food" style={{ color: 'var(--color-accent)' }}></i> Menu Items Management
           </h1>
-          <p className="admin-subheading">Add dishes, update prices, and manage live canteen stock toggles</p>
+          <p style={{ margin: '4px 0 0', color: 'var(--color-text-secondary)', fontSize: '0.88rem' }}>
+            Add, edit dishes, update prices, toggle availability, and upload photos.
+          </p>
         </div>
-        <button className="btn btn-accent" onClick={openCreateModal}>
+
+        <button
+          onClick={openCreateModal}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '9px 18px',
+            borderRadius: '6px',
+            border: 'none',
+            background: 'var(--color-accent)',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+          }}
+        >
           <i className="fa-solid fa-plus"></i> Add New Dish
         </button>
       </div>
 
-      {/* Items Table */}
-      <div className="admin-table-card mt-4">
-        {loading ? (
-          <div className="text-center py-5">
-            <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-            <p className="mt-3">Loading menu items...</p>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="admin-data-table">
-              <thead>
-                <tr>
-                  <th>Dish</th>
-                  <th>Cuisine Category</th>
-                  <th>Price</th>
-                  <th>Type</th>
-                  <th>Prep Time</th>
-                  <th>Live Stock</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => {
-                  const isAvail = item.is_available === 1;
-                  const imgUrl = item.image_path ? `/${item.image_path}` : '/assets/images/food/default-food.svg';
+      {/* Filters Toolbar */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '10px',
+          border: '1px solid #e2e8f0',
+          padding: '16px 20px',
+          marginBottom: '20px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(200px, 1.6fr) minmax(180px, 1fr) minmax(180px, 1fr) auto',
+            gap: '10px',
+            alignItems: 'center',
+          }}
+        >
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search dish name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          />
 
+          <select
+            className="form-control"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          >
+            <option value="all">All Categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={String(c.id)}>{c.name}</option>
+            ))}
+          </select>
+
+          <select
+            className="form-control"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          >
+            <option value="all">All Types (Veg & Non-Veg)</option>
+            <option value="veg">Vegetarian</option>
+            <option value="non-veg">Non-Vegetarian</option>
+          </select>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              style={{
+                background: '#1B4332',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '9px 18px',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <i className="fa-solid fa-filter"></i> Filter
+            </button>
+            <button
+              type="button"
+              onClick={() => { setSearch(''); setCategoryFilter('all'); setTypeFilter('all'); }}
+              title="Reset Filters"
+              style={{
+                background: 'white',
+                color: '#64748b',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                padding: '9px 12px',
+                cursor: 'pointer',
+              }}
+            >
+              <i className="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Items Table */}
+      <div
+        style={{
+          background: 'white',
+          borderRadius: '10px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <th style={{ padding: '12px 18px', fontWeight: 700 }}>Item</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700 }}>Category</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Type</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'right' }}>Price</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Prep Time</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Available</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Status</th>
+                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '50px', color: '#64748b' }}>
+                    <i className="fa-solid fa-spinner fa-spin fa-2x" style={{ color: 'var(--color-accent)' }}></i>
+                    <p className="mt-2" style={{ margin: '8px 0 0' }}>Loading dishes...</p>
+                  </td>
+                </tr>
+              ) : filteredItems.length === 0 ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '50px', color: '#94a3b8' }}>
+                    No dishes found matching filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredItems.map((item) => {
+                  const isVeg = item.food_type === 'veg';
+                  const inStock = item.is_available === 1;
                   return (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="dish-table-cell">
-                          <img
-                            src={imgUrl}
-                            alt={item.name}
-                            className="dish-table-thumbnail"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/assets/images/food/default-food.svg';
+                    <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      {/* Item thumbnail and name */}
+                      <td style={{ padding: '12px 18px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '50%',
+                              background: '#fff7ed',
+                              border: '1.5px solid #fed7aa',
+                              color: '#ea580c',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1rem',
+                              flexShrink: 0,
                             }}
-                          />
+                          >
+                            <i className="fa-solid fa-bowl-food"></i>
+                          </div>
                           <div>
-                            <strong className="dish-name-cell">{item.name}</strong>
+                            <div style={{ fontWeight: 700, color: '#1e293b' }}>{item.name}</div>
                             {item.description && (
-                              <div className="dish-desc-cell text-muted">{item.description}</div>
+                              <div style={{ fontSize: '0.74rem', color: '#94a3b8', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {item.description}
+                              </div>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td>
-                        <span className="badge-pill badge-cuisine">
-                          {item.category_name || 'General'}
-                        </span>
+
+                      {/* Category */}
+                      <td style={{ padding: '12px 18px', color: '#475569', fontWeight: 500 }}>
+                        {item.category?.name || 'Indian'}
                       </td>
-                      <td className="font-weight-bold">₹{Number(item.price).toFixed(2)}</td>
-                      <td>
-                        <span className={`badge-diet ${item.food_type === 'veg' ? 'veg' : 'nonveg'}`}>
-                          {item.food_type.toUpperCase()}
-                        </span>
-                      </td>
-                      <td>{item.preparation_time_minutes} min</td>
-                      <td>
-                        <button
-                          className={`btn-stock-toggle ${isAvail ? 'in-stock' : 'out-of-stock'}`}
-                          onClick={() => handleToggleStock(item.id)}
-                          title="Click to toggle availability"
+
+                      {/* Type Badge */}
+                      <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                        <span
+                          style={{
+                            fontSize: '0.7rem',
+                            padding: '3px 10px',
+                            borderRadius: 'var(--radius-full)',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: isVeg ? '#dcfce7' : '#fee2e2',
+                            color: isVeg ? '#15803d' : '#b91c1c',
+                            textTransform: 'uppercase',
+                          }}
                         >
-                          <i className={`fa-solid ${isAvail ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>{' '}
-                          {isAvail ? 'In Stock' : 'Sold Out'}
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isVeg ? '#15803d' : '#b91c1c' }}></span>
+                          {isVeg ? 'VEG' : 'NON-VEG'}
+                        </span>
+                      </td>
+
+                      {/* Price */}
+                      <td style={{ padding: '12px 18px', textAlign: 'right', fontWeight: 700, color: '#1e293b' }}>
+                        ₹{Number(item.price).toFixed(2)}
+                      </td>
+
+                      {/* Prep time */}
+                      <td style={{ padding: '12px 18px', textAlign: 'center', fontSize: '0.85rem', color: '#64748b' }}>
+                        {item.preparation_time_minutes} mins
+                      </td>
+
+                      {/* Available Stock Toggle */}
+                      <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => handleToggleStock(item.id)}
+                          title="Click to toggle stock"
+                          style={{
+                            fontSize: '0.68rem',
+                            padding: '3px 10px',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            letterSpacing: '0.5px',
+                            textTransform: 'uppercase',
+                            border: 'none',
+                            cursor: 'pointer',
+                            background: inStock ? '#dcfce7' : '#fee2e2',
+                            color: inStock ? '#15803d' : '#b91c1c',
+                          }}
+                        >
+                          {inStock ? 'IN STOCK' : 'OUT OF STOCK'}
                         </button>
                       </td>
-                      <td>
-                        <div className="btn-group">
-                          <button
-                            className="btn btn-outline-secondary btn-xs mr-1"
-                            onClick={() => openEditModal(item)}
-                            title="Edit dish"
-                          >
-                            <i className="fa-solid fa-pen-to-square"></i>
-                          </button>
-                          <button
-                            className="btn btn-outline-danger btn-xs"
-                            onClick={() => handleDelete(item.id, item.name)}
-                            title="Delete dish"
-                          >
-                            <i className="fa-solid fa-trash-can"></i>
-                          </button>
-                        </div>
+
+                      {/* Status */}
+                      <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                        <span
+                          style={{
+                            fontSize: '0.68rem',
+                            padding: '3px 10px',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            letterSpacing: '0.5px',
+                            textTransform: 'uppercase',
+                            background: '#e0f2fe',
+                            color: '#0369a1',
+                          }}
+                        >
+                          ACTIVE
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td style={{ padding: '12px 18px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => openEditModal(item)}
+                          style={{
+                            padding: '4px 12px',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            borderRadius: '6px',
+                            border: '1px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: '#334155',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <i className="fa-solid fa-pencil" style={{ fontSize: '0.75rem' }}></i> Edit
+                        </button>
                       </td>
                     </tr>
                   );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Create / Edit Modal */}
+      {/* Edit / Add Modal (Matches Image 9) */}
       {showModal && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3>{editingItem ? 'Edit Dish' : 'Add New Food Item'}</h3>
-              <button className="close-btn" onClick={() => setShowModal(false)}>
-                <i className="fa-solid fa-xmark"></i>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              maxWidth: '560px',
+              width: '100%',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '16px 24px',
+                borderBottom: '1px solid #f1f5f9',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#1e293b', fontFamily: 'var(--font-display)' }}>
+                {editingItem ? 'Edit Food Item' : 'Add New Dish'}
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  fontSize: '1.5rem',
+                  lineHeight: 1,
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                }}
+              >
+                &times;
               </button>
             </div>
 
-            {error && <div className="alert alert-danger mt-2">{error}</div>}
-
-            <form onSubmit={handleSubmit} className="mt-3">
-              <div className="form-group mb-3">
-                <label className="form-label">Dish Name</label>
+            {/* Modal Body */}
+            <form onSubmit={handleSaveSubmit} style={{ padding: '24px' }}>
+              {/* Dish Name */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                  Dish Name <span style={{ color: '#ef4444' }}>*</span>
+                </label>
                 <input
                   type="text"
-                  className="form-control"
-                  placeholder="e.g. Masala Dosa"
+                  required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
                 />
               </div>
 
-              <div className="form-row mb-3">
-                <div className="form-group form-col">
-                  <label className="form-label">Cuisine Category</label>
+              {/* Cuisine & Food Classification */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                    Cuisine Category <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <select
-                    className="form-control"
                     value={formData.category_id}
                     onChange={(e) => setFormData({ ...formData, category_id: Number(e.target.value) })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
                   >
                     {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
 
-                <div className="form-group form-col">
-                  <label className="form-label">Price in INR (₹)</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    className="form-control"
-                    placeholder="90.00"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row mb-3">
-                <div className="form-group form-col">
-                  <label className="form-label">Dietary Classification</label>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                    Food Classification <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <select
-                    className="form-control"
                     value={formData.food_type}
                     onChange={(e) => setFormData({ ...formData, food_type: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
                   >
                     <option value="veg">Vegetarian</option>
                     <option value="non-veg">Non-Vegetarian</option>
                   </select>
                 </div>
+              </div>
 
-                <div className="form-group form-col">
-                  <label className="form-label">Estimated Prep Duration (min)</label>
+              {/* Price & Prep Time */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                    Price (₹) <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <input
                     type="number"
-                    className="form-control"
+                    step="0.01"
+                    required
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                    Estimated Prep Time (mins)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
                     value={formData.preparation_time_minutes}
                     onChange={(e) => setFormData({ ...formData, preparation_time_minutes: Number(e.target.value) })}
-                    required
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
                   />
                 </div>
               </div>
 
-              <div className="form-group mb-3">
-                <label className="form-label">Description / Ingredients</label>
+              {/* Description */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                  Description
+                </label>
                 <textarea
-                  className="form-control"
                   rows={2}
-                  placeholder="Portion size, ingredients, accompaniments..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                ></textarea>
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontFamily: 'inherit' }}
+                />
               </div>
 
-              <div className="modal-actions mt-4">
+              {/* Dish Photo */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                  Dish Photo (JPG, PNG, WebP &lt; 2MB)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                />
+                <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', marginTop: '4px' }}>
+                  Leave blank to keep existing photo.
+                </span>
+              </div>
+
+              {/* Checkboxes: Available in Stock & Active on Menu */}
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '24px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600, color: '#1e293b' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.is_available === 1}
+                    onChange={(e) => setFormData({ ...formData, is_available: e.target.checked ? 1 : 0 })}
+                  />
+                  Available in Stock
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600, color: '#1e293b' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.is_active === 1}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked ? 1 : 0 })}
+                  />
+                  Active on Menu
+                </label>
+              </div>
+
+              {/* Modal Footer Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button
                   type="button"
-                  className="btn btn-outline-secondary"
                   onClick={() => setShowModal(false)}
+                  style={{
+                    padding: '9px 20px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#475569',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                  }}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-accent"
                   disabled={saving}
+                  style={{
+                    padding: '9px 24px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'var(--color-accent)',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                  }}
                 >
-                  {saving ? 'Saving...' : editingItem ? 'Save Changes' : 'Create Dish'}
+                  {saving ? 'Saving...' : 'Save Dish'}
                 </button>
               </div>
             </form>
@@ -372,4 +672,3 @@ export default function AdminMenuItemsPage() {
     </div>
   );
 }
-
