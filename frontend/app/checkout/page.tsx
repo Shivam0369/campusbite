@@ -30,10 +30,12 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container py-5 text-center">
-        <h2>Your cart is empty</h2>
-        <p className="mt-2">Please add some items to your tray before proceeding to checkout.</p>
-        <Link href="/menu" className="btn btn-accent mt-3">
+      <div className="checkout-container text-center py-5">
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>Your cart is empty</h2>
+        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '20px' }}>
+          Please add some items to your tray before proceeding to checkout.
+        </p>
+        <Link href="/menu" className="btn btn-accent" style={{ color: 'white', padding: '10px 24px' }}>
           Return to Menu
         </Link>
       </div>
@@ -69,81 +71,172 @@ export default function CheckoutPage() {
     }
   };
 
+  const totalAmount = Number(cart?.total || 0).toFixed(2);
+
   return (
-    <div className="checkout-page-container container py-4">
-      <h1 className="page-title mb-4">
-        <i className="fa-solid fa-cash-register"></i> Express Checkout
-      </h1>
+    <div style={{ minHeight: 'calc(100vh - var(--header-height))', padding: '20px 0 60px' }}>
+      <div className="checkout-container">
+        {/* Title */}
+        <h1
+          style={{
+            fontSize: '1.75rem',
+            fontWeight: 800,
+            fontFamily: 'var(--font-display)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            color: 'var(--color-text)',
+            marginBottom: '24px',
+          }}
+        >
+          <i className="fa-solid fa-lock" style={{ color: 'var(--color-accent)' }}></i> Checkout
+        </h1>
 
-      {error && (
-        <div className="alert alert-danger mb-4">
-          <i className="fa-solid fa-circle-exclamation alert-icon"></i>
-          <span>{error}</span>
-        </div>
-      )}
+        {error && (
+          <div className="alert alert-danger mb-4" style={{ padding: '12px 16px', borderRadius: '8px' }}>
+            <i className="fa-solid fa-circle-exclamation alert-icon"></i>
+            <span>{error}</span>
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="checkout-layout-grid">
-        {/* Left Column: Form Details & Payment */}
-        <div className="checkout-form-column">
-          {/* Customer Details Box */}
-          <div className="checkout-section-card">
-            <h3 className="section-card-title">
-              <i className="fa-solid fa-user"></i> Pickup Details
+        <form onSubmit={handleSubmit}>
+          {/* Section 1: Order Summary */}
+          <div className="checkout-section">
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}>
+              <i className="fa-solid fa-receipt" style={{ color: 'var(--color-accent)' }}></i> Order Summary
             </h3>
 
-            <div className="form-group mb-3">
-              <label className="form-label" htmlFor="customer_name">
-                Customer Name <span className="text-danger">*</span>
-              </label>
-              <input
-                id="customer_name"
-                type="text"
-                className="form-control"
-                placeholder="Full Name"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                required
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '18px' }}>
+              {items.map((item) => {
+                const imgUrl = item.image_path ? `/${item.image_path}` : '/assets/images/food/default-food.svg';
+                return (
+                  <div
+                    key={item.menu_item_id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '46px',
+                          height: '46px',
+                          borderRadius: '8px',
+                          background: '#d97706',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={item.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/assets/images/food/default-food.svg';
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--color-text)' }}>
+                          {item.name}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                          ₹{Number(item.price).toFixed(2)} &times; {item.quantity}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text)' }}>
+                      ₹{Number(item.line_total).toFixed(2)}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="form-group mb-3">
-              <label className="form-label" htmlFor="phone">
-                Phone Number (optional for SMS/token alerts)
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                className="form-control"
-                placeholder="9876543210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="notes">
-                Special Kitchen Notes (optional)
-              </label>
-              <textarea
-                id="notes"
-                className="form-control"
-                rows={2}
-                placeholder="e.g. Less spicy, extra green chutney, no ice..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              ></textarea>
+            <div style={{ borderTop: '1px solid var(--color-border-light)', paddingTop: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+                <span>Subtotal</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>₹{Number(cart?.subtotal || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>
+                <span>Tax (5%)</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>₹{Number(cart?.tax_amount || 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--color-border-light)', marginTop: '8px', paddingTop: '10px', fontSize: '1.15rem', fontWeight: 800 }}>
+                <span>Total</span>
+                <span style={{ color: 'var(--color-accent)' }}>₹{totalAmount}</span>
+              </div>
             </div>
           </div>
 
-          {/* Payment Method Selection */}
-          <div className="checkout-section-card mt-4">
-            <h3 className="section-card-title">
-              <i className="fa-solid fa-credit-card"></i> Payment Method
+          {/* Section 2: Your Details */}
+          <div className="checkout-section">
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}>
+              <i className="fa-solid fa-user" style={{ color: 'var(--color-accent)' }}></i> Your Details
             </h3>
 
-            <div className="payment-options-grid">
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
+                Name <span style={{ color: 'var(--color-danger)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Your full name"
+                required
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--color-border)' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
+                Phone Number <span style={{ color: 'var(--color-text-secondary)', fontWeight: 400 }}>(optional)</span>
+              </label>
+              <input
+                type="tel"
+                className="form-control"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g. 9876543210"
+                maxLength={10}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--color-border)' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
+                Order Notes <span style={{ color: 'var(--color-text-secondary)', fontWeight: 400 }}>(optional)</span>
+              </label>
+              <textarea
+                className="form-control"
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="e.g. Less spicy, no onion, extra chutney..."
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--color-border)', resize: 'vertical' }}
+              />
+            </div>
+          </div>
+
+          {/* Section 3: Payment Method */}
+          <div className="checkout-section">
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}>
+              <i className="fa-solid fa-credit-card" style={{ color: 'var(--color-accent)' }}></i> Payment Method
+            </h3>
+
+            <div className="payment-methods">
               <label
-                className={`payment-option-card ${paymentMethod === 'cash' ? 'selected' : ''}`}
+                className={`payment-option ${paymentMethod === 'cash' ? 'selected' : ''}`}
+                onClick={() => setPaymentMethod('cash')}
               >
                 <input
                   type="radio"
@@ -152,19 +245,18 @@ export default function CheckoutPage() {
                   checked={paymentMethod === 'cash'}
                   onChange={() => setPaymentMethod('cash')}
                 />
-                <div className="payment-option-content">
-                  <div className="payment-icon cash-icon">
-                    <i className="fa-solid fa-money-bill-wave"></i>
-                  </div>
-                  <div className="payment-text">
-                    <span className="payment-title">Cash at Counter</span>
-                    <span className="payment-desc">Pay cash when collecting your food tray</span>
-                  </div>
+                <div style={{ fontSize: '1.25rem', color: '#16a34a' }}>
+                  <i className="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <div className="payment-option-info">
+                  <h4>Cash at Counter</h4>
+                  <p>Pay when you collect your order from the counter.</p>
                 </div>
               </label>
 
               <label
-                className={`payment-option-card ${paymentMethod === 'upi' ? 'selected' : ''}`}
+                className={`payment-option ${paymentMethod === 'upi' ? 'selected' : ''}`}
+                onClick={() => setPaymentMethod('upi')}
               >
                 <input
                   type="radio"
@@ -173,92 +265,90 @@ export default function CheckoutPage() {
                   checked={paymentMethod === 'upi'}
                   onChange={() => setPaymentMethod('upi')}
                 />
-                <div className="payment-option-content">
-                  <div className="payment-icon upi-icon">
-                    <i className="fa-solid fa-qrcode"></i>
-                  </div>
-                  <div className="payment-text">
-                    <span className="payment-title">UPI Demonstration</span>
-                    <span className="payment-desc">Instant campus payment verification</span>
-                  </div>
+                <div style={{ fontSize: '1.25rem', color: '#0284c7' }}>
+                  <i className="fa-solid fa-mobile-screen"></i>
+                </div>
+                <div className="payment-option-info">
+                  <h4>UPI Payment</h4>
+                  <p>Pay via UPI (Demo mode — for college demonstration only)</p>
                 </div>
               </label>
             </div>
+          </div>
 
-            {paymentMethod === 'upi' && (
-              <div className="upi-demo-box mt-3">
-                <i className="fa-solid fa-info-circle"></i> Demonstration UPI Mode: Token will simulate immediate verified payment with VPA: <strong>campusbite@upi</strong>.
+          {/* Section 4: Collection Notice Callout */}
+          <div
+            style={{
+              background: '#fef3c7',
+              border: '1px solid #fde68a',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '14px',
+              marginBottom: '24px',
+            }}
+          >
+            <div style={{ fontSize: '1.25rem', color: '#d97706', marginTop: '2px' }}>
+              <i className="fa-solid fa-bell-concierge"></i>
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: '#92400e', fontSize: '0.92rem', marginBottom: '2px' }}>
+                Collect at Canteen Counter
               </div>
+              <div style={{ color: '#b45309', fontSize: '0.85rem', lineHeight: 1.4 }}>
+                Your order will be prepared fresh. You&apos;ll receive an order number &mdash; collect your food when the status shows &ldquo;Ready for Collection&rdquo;.
+              </div>
+            </div>
+          </div>
+
+          {/* Place Order CTA Button */}
+          <button
+            type="submit"
+            className="btn btn-accent btn-block"
+            disabled={submitting}
+            style={{
+              width: '100%',
+              padding: '16px',
+              fontSize: '1.05rem',
+              fontWeight: 700,
+              borderRadius: '8px',
+              color: 'white',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '10px',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              opacity: submitting ? 0.75 : 1,
+            }}
+          >
+            {submitting ? (
+              <>
+                <i className="fa-solid fa-spinner fa-spin"></i> Placing Order...
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-circle-dot"></i> Place Order &mdash; ₹{totalAmount}
+              </>
             )}
-          </div>
+          </button>
 
-          {/* Counter Pickup Disclaimer Box */}
-          <div className="counter-disclaimer-box mt-4">
-            <div className="disclaimer-header">
-              <i className="fa-solid fa-bell-concierge"></i> Self-Service Counter Collection
-            </div>
-            <p className="disclaimer-text">
-              Orders are prepared fresh at the canteen kitchen. When your order status turns <strong>Ready for Collection</strong>, show your order token number at the physical collection window.
-            </p>
-          </div>
-        </div>
-
-        {/* Right Column: Order Summary */}
-        <div className="checkout-summary-column">
-          <div className="checkout-summary-card">
-            <h3 className="summary-title">Summary Review</h3>
-
-            <div className="summary-items-list">
-              {items.map((i) => (
-                <div key={i.menu_item_id} className="checkout-item-line">
-                  <span className="item-qty-name">
-                    <strong>{i.quantity}×</strong> {i.name}
-                  </span>
-                  <span className="item-price">
-                    ₹{Number(i.line_total).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="summary-divider my-3"></div>
-
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>₹{Number(cart?.subtotal || 0).toFixed(2)}</span>
-            </div>
-
-            <div className="summary-row">
-              <span>GST ({cart?.tax_percent || 5}%)</span>
-              <span>₹{Number(cart?.tax_amount || 0).toFixed(2)}</span>
-            </div>
-
-            <div className="summary-divider my-3"></div>
-
-            <div className="summary-row total-row">
-              <span>Grand Total</span>
-              <span className="total-amount">₹{Number(cart?.total || 0).toFixed(2)}</span>
-            </div>
-
-            <button
-              type="submit"
-              className="btn btn-accent btn-block btn-lg mt-4"
-              disabled={submitting}
+          {/* Back to Cart Link */}
+          <div style={{ textAlign: 'center', marginTop: '16px' }}>
+            <Link
+              href="/cart"
+              style={{
+                fontSize: '0.9rem',
+                color: 'var(--color-text-secondary)',
+                textDecoration: 'none',
+                fontWeight: 500,
+              }}
             >
-              {submitting ? (
-                <>
-                  <i className="fa-solid fa-spinner fa-spin"></i> Placing Order...
-                </>
-              ) : (
-                <>
-                  Place Order — ₹{Number(cart?.total || 0).toFixed(2)}
-                </>
-              )}
-            </button>
+              &larr; Back to Cart
+            </Link>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
-

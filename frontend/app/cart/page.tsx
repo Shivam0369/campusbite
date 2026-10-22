@@ -24,22 +24,22 @@ export default function CartPage() {
   };
 
   return (
-    <div style={{ minHeight: 'calc(100vh - var(--header-height))', padding: '30px 0 60px' }}>
-      <div className="container">
-        {/* Header matching media_1792610926770_051abe6a.png */}
+    <div style={{ minHeight: 'calc(100vh - var(--header-height))', padding: '20px 0 60px' }}>
+      <div className="cart-container">
+        {/* Header matching Image 3 */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '30px',
+            marginBottom: '24px',
             flexWrap: 'wrap',
-            gap: '16px',
+            gap: '12px',
           }}
         >
           <h1
             style={{
-              fontSize: '1.6rem',
+              fontSize: '1.75rem',
               fontWeight: 800,
               fontFamily: 'var(--font-display)',
               display: 'flex',
@@ -52,35 +52,27 @@ export default function CartPage() {
             <i className="fa-solid fa-cart-shopping" style={{ color: 'var(--color-accent)' }}></i> Your Cart
           </h1>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <Link
-              href="/menu"
-              className="btn btn-outline-dark btn-sm"
-              style={{
-                borderRadius: 'var(--radius-sm)',
-                border: '1.5px solid var(--color-border)',
-                background: 'white',
-                color: 'var(--color-text)',
-                fontWeight: 600,
-                padding: '8px 16px',
-                textDecoration: 'none',
-              }}
-            >
-              &larr; Continue Shopping
-            </Link>
-
-            {!isEmpty && (
-              <button
-                className="btn btn-outline-danger btn-sm"
-                onClick={() => setShowClearConfirm(true)}
-              >
-                <i className="fa-solid fa-trash-can"></i> Clear Cart
-              </button>
-            )}
-          </div>
+          <Link
+            href="/menu"
+            className="btn btn-outline-dark btn-sm"
+            style={{
+              borderRadius: 'var(--radius-sm)',
+              border: '1.5px solid var(--color-border)',
+              background: 'white',
+              color: 'var(--color-text)',
+              fontWeight: 600,
+              padding: '8px 18px',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            &larr; Continue Shopping
+          </Link>
         </div>
 
-        {/* Confirmation Modal */}
+        {/* Clear Cart Confirmation Modal */}
         {showClearConfirm && (
           <div className="modal-backdrop">
             <div className="modal-card">
@@ -113,102 +105,92 @@ export default function CartPage() {
         )}
 
         {isEmpty ? (
-          /* Empty state matching media_1792610926770_051abe6a.png */
-          <div
-            className="text-center"
-            style={{
-              padding: '70px 20px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <div style={{ fontSize: '4.5rem', color: '#cbd5e1', marginBottom: '20px' }}>
-              <i className="fa-solid fa-cart-shopping"></i>
-            </div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
-              Your cart is empty
-            </h2>
-            <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginBottom: '24px' }}>
-              Browse our menu and add some delicious items!
-            </p>
+          <div className="empty-state">
+            <i className="fa-solid fa-cart-shopping"></i>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '8px' }}>Your cart is empty</h3>
+            <p>Browse our menu and add some delicious items!</p>
             <Link
               href="/menu"
               className="btn btn-accent btn-lg"
               style={{
                 borderRadius: 'var(--radius-sm)',
-                padding: '16px 36px',
+                padding: '14px 32px',
                 fontWeight: 700,
-                fontSize: '1rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '10px',
                 color: 'white',
               }}
             >
-              <i className="fa-solid fa-utensils"></i> Browse Menu
+              Browse Menu
             </Link>
           </div>
         ) : (
-          <div className="cart-layout-grid">
+          <>
             {/* Cart Items List */}
-            <div className="cart-items-column">
+            <div className="cart-items-list">
               {items.map((item) => {
                 const imgUrl = item.image_path ? `/${item.image_path}` : '/assets/images/food/default-food.svg';
                 return (
-                  <div key={item.menu_item_id} className="cart-item-card">
-                    {/* Thumbnail */}
-                    <img
-                      src={imgUrl}
-                      alt={item.name}
-                      className="cart-item-thumbnail"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/images/food/default-food.svg';
+                  <div key={item.menu_item_id} className="cart-item">
+                    {/* Item Image Thumbnail */}
+                    <div
+                      className="cart-item-image"
+                      style={{
+                        background: '#d97706',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
-                    />
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={item.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/assets/images/food/default-food.svg';
+                        }}
+                      />
+                    </div>
 
-                    {/* Info */}
+                    {/* Item Info */}
                     <div className="cart-item-info">
-                      <h3 className="cart-item-name">{item.name}</h3>
-                      <div className="cart-item-unit-price">
+                      <div className="cart-item-name">{item.name}</div>
+                      <div className="cart-item-price">
                         ₹{Number(item.price).toFixed(2)} each
                       </div>
                     </div>
 
                     {/* Quantity Stepper */}
-                    <div className="cart-item-stepper">
+                    <div className="cart-item-qty">
                       <button
-                        className="stepper-btn minus"
+                        className="qty-btn"
                         disabled={loading}
                         onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
                         title="Decrease quantity"
                       >
-                        <i className="fa-solid fa-minus"></i>
+                        -
                       </button>
-                      <span className="stepper-qty">{item.quantity}</span>
+                      <span className="qty-value">{item.quantity}</span>
                       <button
-                        className="stepper-btn plus"
+                        className="qty-btn"
                         disabled={loading || item.quantity >= 20}
                         onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
                         title="Increase quantity"
                       >
-                        <i className="fa-solid fa-plus"></i>
+                        +
                       </button>
                     </div>
 
-                    {/* Line Total */}
-                    <div className="cart-item-line-total">
+                    {/* Item Total */}
+                    <div className="cart-item-total">
                       ₹{Number(item.line_total).toFixed(2)}
                     </div>
 
-                    {/* Remove Button */}
+                    {/* Remove Item */}
                     <button
-                      className="btn-remove-item"
+                      className="cart-item-remove"
                       onClick={() => removeFromCart(item.menu_item_id)}
                       title="Remove item"
                     >
-                      <i className="fa-solid fa-xmark"></i>
+                      ✕
                     </button>
                   </div>
                 );
@@ -216,40 +198,77 @@ export default function CartPage() {
             </div>
 
             {/* Cart Summary Card */}
-            <div className="cart-summary-column">
-              <div className="cart-summary-card">
-                <h2 className="summary-title">Order Summary</h2>
+            <div className="cart-summary">
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '16px', color: 'var(--color-text)' }}>
+                Order Summary
+              </h3>
 
-                <div className="summary-row">
-                  <span>Items Subtotal</span>
-                  <span>₹{Number(cart?.subtotal || 0).toFixed(2)}</span>
-                </div>
+              <div className="cart-summary-row">
+                <span style={{ color: 'var(--color-text-secondary)' }}>Subtotal</span>
+                <span style={{ fontWeight: 600 }}>₹{Number(cart?.subtotal || 0).toFixed(2)}</span>
+              </div>
 
-                <div className="summary-row">
-                  <span>Tax (GST {cart?.tax_percent || 5}%)</span>
-                  <span>₹{Number(cart?.tax_amount || 0).toFixed(2)}</span>
-                </div>
+              <div className="cart-summary-row">
+                <span style={{ color: 'var(--color-text-secondary)' }}>Tax ({cart?.tax_percent || 5}%)</span>
+                <span style={{ fontWeight: 600 }}>₹{Number(cart?.tax_amount || 0).toFixed(2)}</span>
+              </div>
 
-                <div className="summary-divider"></div>
+              <div className="cart-summary-row total">
+                <span>Total</span>
+                <span style={{ color: 'var(--color-text)', fontSize: '1.3rem', fontWeight: 800 }}>
+                  ₹{Number(cart?.total || 0).toFixed(2)}
+                </span>
+              </div>
 
-                <div className="summary-row total-row">
-                  <span>Total Payable</span>
-                  <span className="total-amount">₹{Number(cart?.total || 0).toFixed(2)}</span>
-                </div>
-
+              {/* Actions Footer */}
+              <div
+                className="cart-actions"
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '24px',
+                  paddingTop: '8px',
+                }}
+              >
                 <button
-                  className="btn btn-accent btn-block btn-lg mt-4"
-                  onClick={handleCheckoutClick}
+                  type="button"
+                  onClick={() => setShowClearConfirm(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-text-secondary)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                  }}
                 >
-                  Proceed to Checkout <i className="fa-solid fa-arrow-right"></i>
+                  <i className="fa-solid fa-trash-can"></i> Clear Cart
                 </button>
 
-                <div className="counter-pickup-notice mt-3">
-                  <i className="fa-solid fa-store"></i> Counter pickup only at college dining hall.
-                </div>
+                <button
+                  type="button"
+                  className="btn btn-accent"
+                  style={{
+                    padding: '12px 32px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: 'white',
+                  }}
+                  onClick={handleCheckoutClick}
+                >
+                  <i className="fa-solid fa-lock"></i> Proceed to Checkout
+                </button>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

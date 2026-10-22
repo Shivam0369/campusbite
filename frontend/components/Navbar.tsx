@@ -109,13 +109,33 @@ export default function Navbar() {
               <Link
                 href="/profile"
                 className="nav-user"
-                style={{ textDecoration: 'none', color: 'inherit' }}
+                style={{
+                  textDecoration: 'none',
+                  color: '#ffffff',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 14px',
+                }}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span className="user-avatar">
+                <span
+                  className="user-avatar"
+                  style={{
+                    color: '#ffffff',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: 'var(--color-accent)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                  }}
+                >
                   {user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
                 </span>
-                <span>{user.full_name}</span>
+                <span style={{ color: '#ffffff', fontWeight: 600 }}>{user.full_name}</span>
               </Link>
 
               <button

@@ -201,7 +201,7 @@ h4 { font-size: 1.1rem; }
 }
 
 .nav-links a, .nav-links button {
-    color: rgba(255,255,255,0.85);
+    color: #ffffff !important;
     padding: 8px 16px;
     border-radius: var(--radius-full);
     font-size: 0.9rem;
@@ -252,10 +252,14 @@ h4 { font-size: 1.1rem; }
 }
 
 .nav-user {
+    color: #ffffff !important;
+}
+.nav-user span {
+    color: #ffffff !important;
     display: flex;
     align-items: center;
     gap: 8px;
-    color: rgba(255,255,255,0.85);
+    color: #ffffff !important;
     padding: 6px 14px;
     border-radius: var(--radius-full);
     font-size: 0.85rem;
@@ -1735,6 +1739,10 @@ textarea.form-control {
     .nav-links { padding: 12px; gap: 4px; }
     .nav-links a, .nav-links button { padding: 14px 16px; font-size: 0.95rem; }
     .nav-user { padding: 8px 12px; font-size: 0.85rem; }
+    color: #ffffff !important;
+}
+.nav-user span {
+    color: #ffffff !important;
     .user-avatar, .nav-user .user-avatar { width: 30px; height: 30px; font-size: 0.75rem; }
     .cart-count { width: 18px; height: 18px; font-size: 0.6rem; top: -2px; right: -2px; }
 
@@ -1907,6 +1915,10 @@ textarea.form-control {
     }
 
     .nav-user { width: 100%; justify-content: flex-start; }
+    color: #ffffff !important;
+}
+.nav-user span {
+    color: #ffffff !important;
 
     .food-grid {
         grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -3137,4 +3149,9 @@ textarea.form-control {
 
 @media (max-width: 600px) {
     .kds-kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* Custom overrides for user visibility */
+.nav-user, .nav-user span {
+    color: #ffffff !important;
 }
