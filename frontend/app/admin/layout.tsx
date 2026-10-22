@@ -46,6 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/categories', label: 'Categories', icon: 'fa-layer-group' },
     { href: '/admin/users', label: 'Users', icon: 'fa-users' },
     { href: '/admin/reports', label: 'Sales & Reports', icon: 'fa-chart-line' },
+    { href: '/admin/ai-insights', label: 'AI Insights', icon: 'fa-brain' },
     { href: '/admin/settings', label: 'Settings', icon: 'fa-gear' },
   ];
 
