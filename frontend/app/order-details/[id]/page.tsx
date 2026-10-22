@@ -89,9 +89,9 @@ export default function OrderDetailsPage() {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
+      <div className="container py-5 text-center" style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <i className="fa-solid fa-spinner fa-spin fa-2x" style={{ color: 'var(--color-accent)' }}></i>
-        <p className="mt-3">Loading order details...</p>
+        <p className="mt-3" style={{ color: 'var(--color-text-secondary)' }}>Loading order details...</p>
       </div>
     );
   }
@@ -99,8 +99,10 @@ export default function OrderDetailsPage() {
   if (error || !order) {
     return (
       <div className="container py-5 text-center">
-        <div className="alert alert-error">{error || 'Order not found.'}</div>
-        <Link href="/my-orders" className="btn btn-accent mt-3">
+        <div className="alert alert-error mb-4" style={{ maxWidth: '500px', margin: '0 auto 20px', padding: '14px', borderRadius: '8px' }}>
+          {error || 'Order not found.'}
+        </div>
+        <Link href="/my-orders" className="btn btn-accent" style={{ color: 'white', padding: '10px 24px', textDecoration: 'none' }}>
           Back to My Orders
         </Link>
       </div>
@@ -112,20 +114,20 @@ export default function OrderDetailsPage() {
   const currentStepIndex = LIFECYCLE_STEPS.findIndex((s) => s.key === order.order_status);
 
   return (
-    <div style={{ minHeight: 'calc(100vh - var(--header-height))', padding: '30px 0 60px' }}>
+    <div style={{ minHeight: 'calc(100vh - var(--header-height))', padding: '24px 0 60px' }}>
       <div className="container" style={{ maxWidth: '880px' }}>
-        {/* Back Link matching media_1792610950843_da66e02a.png */}
-        <div style={{ marginBottom: '20px' }}>
+        {/* Top Back Link matching Image 3 */}
+        <div style={{ marginBottom: '18px' }}>
           <Link
             href="/my-orders"
-            className="btn btn-outline-dark btn-sm"
             style={{
-              borderRadius: 'var(--radius-sm)',
-              border: '1.5px solid var(--color-border)',
+              borderRadius: '8px',
+              border: '1.5px solid #2C2C2C',
               background: 'white',
-              color: 'var(--color-text)',
+              color: '#2C2C2C',
               fontWeight: 600,
-              padding: '6px 14px',
+              fontSize: '0.85rem',
+              padding: '8px 16px',
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
@@ -136,15 +138,15 @@ export default function OrderDetailsPage() {
           </Link>
         </div>
 
-        {/* Top Details Card */}
+        {/* Top Details Card matching Image 3 */}
         <div
           style={{
             background: 'white',
-            borderRadius: 'var(--radius-md)',
+            borderRadius: '12px',
             border: '1px solid var(--color-border)',
             padding: '24px 28px',
-            boxShadow: 'var(--shadow-sm)',
-            marginBottom: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            marginBottom: '20px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -155,10 +157,12 @@ export default function OrderDetailsPage() {
           <div>
             <div
               style={{
-                fontSize: '0.72rem',
+                fontSize: '0.75rem',
                 fontWeight: 700,
                 color: 'var(--color-text-secondary)',
-                letterSpacing: '0.6px',
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                marginBottom: '4px',
               }}
             >
               ORDER DETAILS
@@ -166,16 +170,16 @@ export default function OrderDetailsPage() {
             <h1
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: '1.8rem',
+                fontSize: '1.85rem',
                 fontWeight: 800,
                 color: 'var(--color-text)',
-                margin: '4px 0 2px',
+                margin: '0 0 6px 0',
               }}
             >
               #{order.order_number}
             </h1>
             <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-              <i className="fa-regular fa-clock" style={{ marginRight: '4px' }}></i>
+              <i className="fa-regular fa-clock" style={{ marginRight: '6px' }}></i>
               Placed on{' '}
               {new Date(order.created_at).toLocaleDateString(undefined, {
                 day: 'numeric',
@@ -192,7 +196,7 @@ export default function OrderDetailsPage() {
               <span
                 style={{
                   fontSize: '0.72rem',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   borderRadius: 'var(--radius-full)',
                   fontWeight: 700,
                   textTransform: 'uppercase',
@@ -202,13 +206,17 @@ export default function OrderDetailsPage() {
                       ? '#e2e8f0'
                       : order.order_status === 'ready'
                       ? '#dcfce7'
-                      : '#dbeafe',
+                      : order.order_status === 'preparing'
+                      ? '#fef3c7'
+                      : '#e0f2fe',
                   color:
                     order.order_status === 'collected'
                       ? '#475569'
                       : order.order_status === 'ready'
                       ? '#15803d'
-                      : '#1d4ed8',
+                      : order.order_status === 'preparing'
+                      ? '#b45309'
+                      : '#0369a1',
                 }}
               >
                 {order.order_status.toUpperCase()}
@@ -217,12 +225,12 @@ export default function OrderDetailsPage() {
               <span
                 style={{
                   fontSize: '0.72rem',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   borderRadius: 'var(--radius-full)',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
-                  background: isPaid ? 'rgba(45, 106, 79, 0.12)' : 'rgba(234, 179, 8, 0.12)',
+                  background: isPaid ? '#dcfce7' : '#fef3c7',
                   color: isPaid ? '#15803d' : '#a16207',
                 }}
               >
@@ -233,7 +241,7 @@ export default function OrderDetailsPage() {
             <div
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: '1.6rem',
+                fontSize: '1.65rem',
                 fontWeight: 800,
                 color: 'var(--color-text)',
               }}
@@ -243,25 +251,25 @@ export default function OrderDetailsPage() {
           </div>
         </div>
 
-        {/* 5-Step Progress Card matching media_1792610950843_da66e02a.png */}
+        {/* 5-Step Order Progress Card matching Image 3 */}
         <div
           style={{
             background: 'white',
-            borderRadius: 'var(--radius-md)',
+            borderRadius: '12px',
             border: '1px solid var(--color-border)',
             padding: '24px 28px',
-            boxShadow: 'var(--shadow-sm)',
-            marginBottom: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            marginBottom: '20px',
           }}
         >
           <h2
             style={{
-              fontSize: '1.05rem',
+              fontSize: '1.1rem',
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              marginBottom: '24px',
+              marginBottom: '28px',
               color: 'var(--color-text)',
             }}
           >
@@ -269,84 +277,109 @@ export default function OrderDetailsPage() {
           </h2>
 
           {isCancelled ? (
-            <div className="alert alert-error">
+            <div className="alert alert-error" style={{ padding: '12px', borderRadius: '8px' }}>
               <i className="fa-solid fa-ban"></i> This order was cancelled.
             </div>
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(5, 1fr)',
-                gap: '12px',
-                textAlign: 'center',
-                position: 'relative',
-              }}
-            >
-              {LIFECYCLE_STEPS.map((step, idx) => {
-                const isPassed = currentStepIndex >= idx;
-                const isCurrent = currentStepIndex === idx;
+            <div style={{ position: 'relative' }}>
+              {/* Connecting line behind circles */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '24px',
+                  left: '10%',
+                  right: '10%',
+                  height: '4px',
+                  background: '#f1f5f9',
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '24px',
+                  left: '10%',
+                  width: `${Math.min(100, Math.max(0, (currentStepIndex / (LIFECYCLE_STEPS.length - 1)) * 80))}%`,
+                  height: '4px',
+                  background: 'var(--color-accent)',
+                  zIndex: 0,
+                  transition: 'width 0.4s ease',
+                }}
+              />
 
-                return (
-                  <div
-                    key={step.key}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
-                  >
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 1fr)',
+                  gap: '8px',
+                  textAlign: 'center',
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+              >
+                {LIFECYCLE_STEPS.map((step, idx) => {
+                  const isPassed = currentStepIndex >= idx;
+
+                  return (
                     <div
+                      key={step.key}
                       style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '50%',
-                        background: isPassed ? 'var(--color-accent)' : '#f1f5f9',
-                        color: isPassed ? 'white' : '#94a3b8',
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.1rem',
-                        marginBottom: '10px',
-                        boxShadow: isCurrent ? '0 0 0 4px rgba(231, 111, 81, 0.2)' : 'none',
-                        transition: 'all 0.3s ease',
                       }}
                     >
-                      <i className={`fa-solid ${step.icon}`}></i>
+                      <div
+                        style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          background: isPassed ? 'var(--color-accent)' : '#f1f5f9',
+                          color: isPassed ? 'white' : '#94a3b8',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.1rem',
+                          marginBottom: '10px',
+                          boxShadow: isPassed ? '0 2px 6px rgba(231, 111, 81, 0.3)' : 'none',
+                          transition: 'all 0.3s ease',
+                        }}
+                      >
+                        <i className={`fa-solid ${step.icon}`}></i>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.8rem',
+                          fontWeight: isPassed ? 700 : 500,
+                          color: isPassed ? 'var(--color-text)' : '#94a3b8',
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {step.label}
+                      </span>
                     </div>
-                    <span
-                      style={{
-                        fontSize: '0.8rem',
-                        fontWeight: isPassed ? 700 : 500,
-                        color: isPassed ? 'var(--color-text)' : '#94a3b8',
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {step.label}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
 
-        {/* 2 Column Details matching media_1792610950843_da66e02a.png */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-          {/* Left: Items Ordered */}
+        {/* 2-Column Section matching Image 3 */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+          {/* Left Column: Items Ordered */}
           <div
             style={{
               background: 'white',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: '12px',
               border: '1px solid var(--color-border)',
               padding: '24px 28px',
-              boxShadow: 'var(--shadow-sm)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
             }}
           >
             <h3
               style={{
-                fontSize: '1.05rem',
+                fontSize: '1.1rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
@@ -371,15 +404,15 @@ export default function OrderDetailsPage() {
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '0.95rem' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>
                       {item.item_name_snapshot}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                       ₹{Number(item.unit_price).toFixed(2)} &times; {item.quantity}
                     </div>
                   </div>
 
-                  <div style={{ fontWeight: 700, color: 'var(--color-text)' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--color-text)', fontSize: '0.95rem' }}>
                     ₹{Number(item.line_total).toFixed(2)}
                   </div>
                 </div>
@@ -387,19 +420,19 @@ export default function OrderDetailsPage() {
             </div>
           </div>
 
-          {/* Right: Summary */}
+          {/* Right Column: Summary */}
           <div
             style={{
               background: 'white',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: '12px',
               border: '1px solid var(--color-border)',
               padding: '24px 28px',
-              boxShadow: 'var(--shadow-sm)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
             }}
           >
             <h3
               style={{
-                fontSize: '1.05rem',
+                fontSize: '1.1rem',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
@@ -408,88 +441,111 @@ export default function OrderDetailsPage() {
                 color: 'var(--color-text)',
               }}
             >
-              <i className="fa-solid fa-file-invoice" style={{ color: 'var(--color-accent)' }}></i> Summary
+              <i className="fa-solid fa-receipt" style={{ color: 'var(--color-accent)' }}></i> Summary
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Subtotal</span>
-                <span style={{ fontWeight: 600 }}>₹{Number(order.subtotal).toFixed(2)}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: 'var(--color-text-secondary)' }}>
+                <span>Subtotal</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>₹{Number(order.subtotal).toFixed(2)}</span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>GST / Taxes</span>
-                <span style={{ fontWeight: 600 }}>₹{Number(order.tax_amount).toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.92rem', color: 'var(--color-text-secondary)' }}>
+                <span>GST / Taxes</span>
+                <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>₹{Number(order.tax_amount).toFixed(2)}</span>
               </div>
 
-              <div style={{ height: '1px', background: 'var(--color-border-light)', margin: '8px 0' }}></div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-text)' }}>Total Paid</span>
-                <span style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-text)' }}>
-                  ₹{Number(order.total_amount).toFixed(2)}
-                </span>
-              </div>
-
-              <div style={{ height: '1px', background: 'var(--color-border-light)', margin: '8px 0' }}></div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Payment Method:</span>
-                <span style={{ fontWeight: 600 }}>
-                  <i className="fa-solid fa-money-bill-wave" style={{ color: '#16a34a', marginRight: '6px' }}></i>
-                  {order.payment_method === 'cash' ? 'Cash at Counter' : order.payment_method.toUpperCase()}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Payment Status:</span>
-                <span
-                  style={{
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    background: isPaid ? 'rgba(45, 106, 79, 0.12)' : 'rgba(234, 179, 8, 0.12)',
-                    color: isPaid ? '#15803d' : '#a16207',
-                    fontSize: '0.75rem',
-                  }}
-                >
-                  {isPaid ? 'PAID' : 'PENDING'}
-                </span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button
-                className="btn btn-accent btn-block"
-                disabled={reordering}
-                onClick={handleReorder}
-                style={{ borderRadius: 'var(--radius-sm)', padding: '12px', fontWeight: 600 }}
-              >
-                {reordering ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin"></i> Reordering...
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-rotate-right" style={{ marginRight: '6px' }}></i> Reorder All Items
-                  </>
-                )}
-              </button>
-
-              <Link
-                href="/menu"
-                className="btn btn-outline-dark btn-block"
+              <div
                 style={{
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1.5px solid var(--color-border)',
-                  padding: '10px',
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  textDecoration: 'none',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderTop: '1.5px solid var(--color-border-light)',
+                  marginTop: '6px',
+                  paddingTop: '12px',
+                  fontSize: '1.2rem',
+                  fontWeight: 800,
+                  color: 'var(--color-text)',
                 }}
               >
-                <i className="fa-solid fa-utensils" style={{ marginRight: '6px' }}></i> Browse More Food
-              </Link>
+                <span>Total Paid</span>
+                <span style={{ color: 'var(--color-text)' }}>₹{Number(order.total_amount).toFixed(2)}</span>
+              </div>
+
+              <div style={{ borderTop: '1px dashed var(--color-border)', marginTop: '12px', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>Payment Method:</span>
+                  <span style={{ fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    {order.payment_method === 'cash' ? (
+                      <>
+                        <i className="fa-solid fa-money-bill-wave" style={{ color: '#16a34a' }}></i> Cash at Counter
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-mobile-screen" style={{ color: '#0284c7' }}></i> UPI Payment
+                      </>
+                    )}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>Payment Status:</span>
+                  <span
+                    style={{
+                      fontSize: '0.72rem',
+                      padding: '3px 10px',
+                      borderRadius: 'var(--radius-full)',
+                      fontWeight: 700,
+                      background: isPaid ? '#dcfce7' : '#fef3c7',
+                      color: isPaid ? '#15803d' : '#a16207',
+                    }}
+                  >
+                    {isPaid ? 'PAID' : 'PENDING'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn btn-accent"
+                  disabled={reordering}
+                  onClick={handleReorder}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    border: 'none',
+                    cursor: reordering ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <i className="fa-solid fa-rotate-right"></i> {reordering ? 'Adding to Cart...' : 'Reorder All Items'}
+                </button>
+
+                <div style={{ textAlign: 'center' }}>
+                  <Link
+                    href="/menu"
+                    style={{
+                      fontSize: '0.88rem',
+                      color: 'var(--color-text-secondary)',
+                      textDecoration: 'none',
+                      fontWeight: 500,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <i className="fa-solid fa-utensils"></i> Browse More Food
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -187,8 +187,36 @@ async def get_my_orders(
 
     orders_data = []
     for o in orders:
-        ord_dict = OrderDetailResponse.model_validate(o).model_dump()
-        ord_dict["items"] = [OrderItemResponse.model_validate(i).model_dump() for i in o.items]
+        ord_dict = {
+            "id": o.id,
+            "order_number": o.order_number,
+            "user_id": o.user_id,
+            "customer_name_snapshot": o.customer_name_snapshot,
+            "customer_phone_snapshot": o.customer_phone_snapshot,
+            "subtotal": float(o.subtotal),
+            "discount_amount": float(o.discount_amount),
+            "tax_amount": float(o.tax_amount),
+            "total_amount": float(o.total_amount),
+            "payment_method": o.payment_method,
+            "payment_status": o.payment_status,
+            "order_status": o.order_status,
+            "notes": o.notes,
+            "created_at": o.created_at.isoformat(),
+            "updated_at": o.updated_at.isoformat(),
+            "collected_at": o.collected_at.isoformat() if o.collected_at else None,
+            "items": [
+                {
+                    "id": i.id,
+                    "menu_item_id": i.menu_item_id,
+                    "item_name_snapshot": i.item_name_snapshot,
+                    "unit_price": float(i.unit_price),
+                    "quantity": i.quantity,
+                    "line_total": float(i.line_total),
+                }
+                for i in o.items
+            ],
+            "status_history": []
+        }
         orders_data.append(ord_dict)
 
     return ResponseModel(
@@ -220,11 +248,46 @@ async def get_order_details(
     if current_user.role == "customer" and order.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied.")
 
-    ord_dict = OrderDetailResponse.model_validate(order).model_dump()
-    ord_dict["items"] = [OrderItemResponse.model_validate(i).model_dump() for i in order.items]
-    ord_dict["status_history"] = [
-        OrderStatusHistoryResponse.model_validate(h).model_dump() for h in order.status_history
-    ]
+    ord_dict = {
+        "id": order.id,
+        "order_number": order.order_number,
+        "user_id": order.user_id,
+        "customer_name_snapshot": order.customer_name_snapshot,
+        "customer_phone_snapshot": order.customer_phone_snapshot,
+        "subtotal": float(order.subtotal),
+        "discount_amount": float(order.discount_amount),
+        "tax_amount": float(order.tax_amount),
+        "total_amount": float(order.total_amount),
+        "payment_method": order.payment_method,
+        "payment_status": order.payment_status,
+        "order_status": order.order_status,
+        "notes": order.notes,
+        "created_at": order.created_at.isoformat(),
+        "updated_at": order.updated_at.isoformat(),
+        "collected_at": order.collected_at.isoformat() if order.collected_at else None,
+        "items": [
+            {
+                "id": i.id,
+                "menu_item_id": i.menu_item_id,
+                "item_name_snapshot": i.item_name_snapshot,
+                "unit_price": float(i.unit_price),
+                "quantity": i.quantity,
+                "line_total": float(i.line_total),
+            }
+            for i in order.items
+        ],
+        "status_history": [
+            {
+                "id": h.id,
+                "old_status": h.old_status,
+                "new_status": h.new_status,
+                "changed_by_name": "Staff/Admin" if h.changed_by else "System",
+                "notes": h.notes,
+                "created_at": h.created_at.isoformat(),
+            }
+            for h in order.status_history
+        ]
+    }
 
     return ResponseModel(
         success=True,
